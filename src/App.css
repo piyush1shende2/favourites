@@ -1,0 +1,496 @@
+/* ============================================================
+   PART 1: COLOUR VARIABLES
+   A variable is defined as --name: value; and used as var(--name).
+   Change a colour here and the whole app updates.
+   ============================================================ */
+
+/* :root = the top-level <html> element, so these variables work everywhere. */
+:root {
+  --orange: #db9558;          /* accent colour: buttons, highlights, hover borders */
+  --cream: #fcf9ea;           /* palette cream: the light page background */
+  --sage: #97a87a;            /* palette green: card top stripe, photo panel */
+  --sage-light: #a8bba3;      /* lighter green: icons, borders */
+  --bg: var(--cream);         /* "page background" role; points at cream in light mode */
+  --card: #ffffff;            /* background of cards and boxes */
+  --text: #3a4430;            /* main text colour (dark green-brown) */
+  --line: var(--sage-light);  /* colour of thin borders and dividers */
+}
+
+/* Matches <html data-theme="dark"> (App.jsx sets this when dark mode is on).
+   It overrides ONLY these four role variables, so every rule below switches to
+   dark colours automatically, with no extra rules needed. */
+:root[data-theme="dark"] {
+  --bg: #1f261a;     /* dark page background */
+  --card: #2b3425;   /* dark card background */
+  --text: #fcf9ea;   /* light text so it is readable on dark */
+  --line: #54634a;   /* darker border colour */
+}
+
+/* ============================================================
+   PART 2: RESET AND BASE STYLES
+   ============================================================ */
+
+/* * = every element.
+   box-sizing: border-box -> width includes padding and border (easier maths).
+   margin: 0 and padding: 0 -> remove the browser's default spacing. */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* body = the whole visible page.
+   font-family: try Inter, else the system font.
+   background: the --bg role colour (so dark mode changes it).
+   color: default text colour.
+   transition: background .3s -> the background fades over 0.3s when the theme switches. */
+body { font-family: "Inter", system-ui, sans-serif; background: var(--bg); color: var(--text); transition: background .3s; }
+
+/* Buttons, inputs, dropdowns and text areas normally ignore the page font and colour.
+   font: inherit and color: inherit make them use the same ones as the page. */
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* Shows the pointing-hand cursor on buttons so they feel clickable. */
+button { cursor: pointer; }
+
+/* :focus-visible = when an element is reached with the keyboard (Tab key).
+   Draws an orange outline so keyboard users can see where they are (accessibility).
+   outline-offset pushes the outline 2px away from the element. */
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+/* ============================================================
+   PART 3: PAGE LAYOUT AND TOP BAR
+   ============================================================ */
+
+/* .page = main wrapper.
+   max-width: never wider than 1150px (keeps lines readable on big screens).
+   margin: 0 auto -> 0 top/bottom; "auto" left/right centres it horizontally.
+   padding: 32px top, 20px sides, 64px bottom (space inside the edges). */
+.page { max-width: 1150px; margin: 0 auto; padding: 32px 20px 64px; }
+
+/* .top = the header bar.
+   display: flex -> children sit in a row.
+   flex-wrap: wrap -> if there is no room, items move to the next line.
+   gap: 10px -> space between items.
+   align-items: center -> items line up vertically in the middle.
+   margin-bottom: space below the bar. */
+.top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }
+
+/* The title: 1.9rem (rem = relative to the base font size), extra bold (800).
+   margin-right: auto -> takes ALL free space on its right, pushing the other
+   controls to the far right of the bar. */
+.top h1 { font-size: 1.9rem; font-weight: 800; margin-right: auto; }
+
+/* Search box and every <select> dropdown share one look.
+   padding: 10px up/down, 14px left/right.
+   border: 1px solid line-colour.
+   border-radius: 999px -> fully rounded "pill" shape.
+   background: card colour. */
+.search, select { padding: 10px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+
+/* .ghost = plain outlined button (Dark, Export, Import, Cancel). Same pill shape. */
+.ghost { padding: 10px 16px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); }
+
+/* On hover (mouse over), the border turns orange. Applies to both button types. */
+.ghost:hover, .pill:hover { border-color: var(--orange); }
+
+/* .pill = filled orange button (+ Add, Save, favourite, upload).
+   color: #fff -> white text. font-weight: 600 -> semi-bold. */
+.pill { padding: 10px 18px; border: 1px solid var(--orange); border-radius: 999px; background: var(--orange); color: #fff; font-weight: 600; }
+
+/* ============================================================
+   PART 4: STATS ROW
+   ============================================================ */
+
+/* display: grid with 4 equal columns. repeat(4, 1fr) = 4 columns, each 1 "fraction"
+   (an equal share) of the width. */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+
+/* Each stat box: card background, rounded corners, inner space,
+   and a 4px orange stripe on its left edge. */
+.stats div { background: var(--card); border-radius: 14px; padding: 14px 18px; border-left: 4px solid var(--orange); }
+
+/* The number inside <b>: big (1.5rem) with a small gap before the label. */
+.stats b { font-size: 1.5rem; margin-right: 6px; }
+
+/* ============================================================
+   PART 5: OLD CARD-LAYOUT RULES
+   NOTE: these rules (.lists, .card, .card-head, .icon, .tiny, .option, .add, .new)
+   belong to the earlier "three category cards" layout. The dropdown layout no longer
+   uses most of them. Only .tiny is still used (the small ✏️ 🗑️ ❤️ buttons).
+   It is safe to delete the unused ones later.
+   ============================================================ */
+
+/* Responsive grid: auto-fit = fit as many columns as possible;
+   minmax(260px, 1fr) = each column is at least 260px and shares leftover space. */
+.lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+
+/* One category card: white box, rounded corners, inner space, 5px green top stripe,
+   soft shadow (box-shadow: x-offset y-offset blur colour; rgba(...,.1) = 10% opaque). */
+.card { background: var(--card); border-radius: 18px; padding: 18px; border-top: 5px solid var(--sage); box-shadow: 0 8px 24px rgba(58, 68, 48, .1); }
+
+/* Card header row: icon + title + small buttons in a line, centred vertically. */
+.card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+
+/* flex: 1 -> the title takes all free space, pushing the small buttons to the right. */
+.card-head h3 { flex: 1; font-size: 1.05rem; }
+
+/* The emoji tile: fixed 38x38 square. display: grid + place-items: center centres the emoji
+   both ways. Light green background, rounded corners. */
+.icon { width: 38px; height: 38px; display: grid; place-items: center; background: var(--sage-light); border-radius: 12px; }
+
+/* .tiny = small icon buttons (✏️ 🗑️ ❤️). No border, no background,
+   slightly faded (opacity .75 = 75% visible). STILL USED in the dropdown boxes. */
+.tiny { border: 0; background: none; padding: 4px; border-radius: 8px; opacity: .75; }
+
+/* On hover: fully visible, and a soft background square appears. */
+.tiny:hover { opacity: 1; background: var(--bg); }
+
+/* One item row of the old card layout: items side by side (flex), rounded border,
+   page-coloured background. transition: all .2s animates hover colour changes. */
+.option { display: flex; align-items: center; gap: 2px; margin-top: 8px; padding: 4px 6px 4px 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); transition: all .2s; }
+
+.option:hover { border-color: var(--orange); }   /* orange border on hover */
+
+/* The selected row: orange fill, white text. */
+.option.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+/* The name button inside a row: flex: 1 stretches it; no default button look. */
+.option .name { flex: 1; text-align: left; border: 0; background: none; padding: 8px 10px; font-weight: 500; }
+
+/* Small buttons in the selected row stay fully visible. */
+.option.active .tiny { opacity: 1; }
+
+/* "+ Add to ..." button and "+ New category" card: full width, dashed border, no fill. */
+.add, .new { width: 100%; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; background: none; }
+
+.add:hover, .new:hover { border-color: var(--orange); }  /* dashed border turns orange on hover */
+
+.new { min-height: 120px; font-weight: 600; }            /* taller, bold */
+
+/* ============================================================
+   PART 6: BIG PHOTO PANEL
+   ============================================================ */
+
+/* The panel: centred (margin auto), at most 760px wide, rounded corners.
+   linear-gradient(135deg, A, B) = colour slides from A to B at a 135-degree angle.
+   Large soft shadow for a "floating" look. */
+.stage { margin: 32px auto; max-width: 760px; padding: 18px; border-radius: 26px; background: linear-gradient(135deg, var(--sage-light), var(--sage)); box-shadow: 0 18px 44px rgba(58, 68, 48, .2); }
+
+/* Two equal columns: photo on the left, info on the right.
+   animation: fade .4s ease -> plays the "fade" animation (defined near the bottom) in 0.4s. */
+.detail { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; animation: fade .4s ease; }
+
+/* The photo: fills its column width, fixed 320px height.
+   object-fit: cover -> the photo fills the box and is cropped (never stretched). */
+.detail img { width: 100%; height: 320px; object-fit: cover; border-radius: 18px; background: var(--card); }
+
+/* Right column: items stacked vertically (flex-direction: column), white text. */
+.info { display: flex; flex-direction: column; gap: 10px; color: #fff; }
+
+/* Note box: grows to fill leftover height (flex: 1), at least 90px tall,
+   semi-transparent white background, dark text, and resize: none removes the drag handle. */
+.info textarea { flex: 1; min-height: 90px; padding: 10px; border: 0; border-radius: 12px; background: rgba(255,255,255,.9); color: #3a4430; resize: none; }
+
+/* Drag-and-drop support: a transparent dashed outline is always present, so only its
+   COLOUR changes on drag. transition animates it. outline-offset puts it just outside. */
+.stage { transition: outline-color .2s, transform .2s; outline: 3px dashed transparent; outline-offset: 4px; }
+
+/* While a file is dragged over (class "over" added by React):
+   the outline turns orange and the panel grows 1% (scale(1.01)). */
+.stage.over { outline-color: var(--orange); transform: scale(1.01); }
+
+/* While dragging, children ignore the mouse. This stops the outline flickering
+   when the pointer crosses the image or text inside the panel. */
+.stage.over * { pointer-events: none; }
+
+/* The "Upload new photo" label: inline-block lets it size to its text,
+   text-align centres the words, cursor: pointer shows the hand. */
+.upload { display: inline-block; text-align: center; cursor: pointer; }
+
+/* The empty message: centred text, lots of vertical padding, white. */
+.placeholder { text-align: center; padding: 70px 0; color: #fff; }
+.placeholder span { font-size: 3rem; }   /* the big camera emoji */
+
+/* Small, softer text: 70% visible, slightly smaller than normal (.9rem). */
+.muted { opacity: .7; font-size: .9rem; }
+
+/* Star buttons: big (1.8rem), no button look, semi-transparent white when unselected. */
+.stars button { border: 0; background: none; font-size: 1.8rem; color: rgba(255,255,255,.5); }
+
+/* Lit stars (class "on"): pale yellow. */
+.stars button.on { color: #fff3c4; }
+
+/* ============================================================
+   PART 7: BOTTOM MINI LISTS
+   ============================================================ */
+
+/* Responsive grid like .lists, with a smaller minimum column width (240px). */
+.minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+
+.mini { background: var(--card); border-radius: 16px; padding: 16px; }  /* the white box */
+.mini h4 { margin-bottom: 8px; }                                         /* space under the title */
+
+/* Each name in a mini list: display: block + width: 100% makes it a full-width row.
+   Only a bottom border, so rows look separated by thin lines. */
+.mini button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+
+/* The small category label next to a name: faded, with a gap on its left. */
+.mini small, .option small { opacity: .7; margin-left: 6px; }
+
+/* ============================================================
+   PART 8: POPUP WINDOW (MODAL)
+   ============================================================ */
+
+/* The dark background behind the popup.
+   position: fixed -> stays on screen even when scrolling.
+   inset: 0 -> shorthand for top, right, bottom and left all = 0 (covers the whole screen).
+   rgba(0,0,0,.45) = black at 45% opacity (dims the page).
+   display: grid + place-items: center -> centres the popup on the screen. */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: grid; place-items: center; padding: 16px; }
+
+/* The popup box: full width up to 400px, card colour, rounded corners.
+   display: flex + flex-direction: column -> fields stack vertically with a gap.
+   Plays the "fade" animation when it opens (0.25s). */
+.modal { width: 100%; max-width: 400px; background: var(--card); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 12px; animation: fade .25s ease; }
+
+/* Each label puts its text above its input (column direction), in slightly smaller text. */
+.modal label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+
+/* Text fields in the popup: inner space, thin border, rounded, page-coloured background. */
+.modal input { padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+
+/* Cancel / Save row: flex with justify-content: flex-end = buttons pushed to the right. */
+.row { display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ============================================================
+   PART 9: ANIMATION AND RESPONSIVE RULES
+   ============================================================ */
+
+/* @keyframes defines an animation named "fade".
+   from = the start look: invisible and slightly small (scale .97 = 97% size).
+   to = the end look: fully visible, normal size (transform: none).
+   Elements that use "animation: fade" play it automatically. */
+@keyframes fade { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+
+/* If the user's system asks to reduce motion (an accessibility setting),
+   turn off all animations and transitions. !important makes this rule win. */
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* @media (max-width: 720px) = these rules apply ONLY on screens 720px wide or less
+   (phones and small tablets). */
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }   /* stats: 2 columns instead of 4 */
+  .detail { grid-template-columns: 1fr; }             /* photo and info stack in 1 column */
+}
+
+/* ============================================================
+   PART 10: THE TWO-DROPDOWN PICKER (new layout)
+   ============================================================ */
+
+/* Both boxes sit in a grid. auto-fit + minmax(300px, 1fr): side by side when there is room
+   (each at least 300px wide), stacked on a phone. gap = space between the boxes. */
+.picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+
+/* The white card: card colour, rounded corners, inner space, green top stripe, soft shadow,
+   and the "fade" animation (0.3s) so Box 2 fades in when it appears. */
+.pick-box { background: var(--card); border-radius: 18px; padding: 18px; border-top: 5px solid var(--sage); box-shadow: 0 8px 24px rgba(58, 68, 48, .1); animation: fade .3s ease; }
+
+/* The small title: display: block puts it on its own line; margin-bottom adds space below; bold. */
+.pick-label { display: block; margin-bottom: 10px; font-weight: 700; }
+
+/* The row: flex = items side by side, centred vertically, 8px between them. */
+.pick-row { display: flex; align-items: center; gap: 8px; }
+
+/* The dropdown inside the row: flex: 1 = take all leftover width;
+   min-width: 0 = allow it to shrink on small screens;
+   padding makes it comfortable to tap; background uses the page colour so it stands out
+   from the white card. */
+.pick-row select { flex: 1; min-width: 0; padding: 12px 16px; background: var(--bg); }
+
+/* Space above the "No options yet" hint. */
+.pick-box .muted { margin-top: 10px; }
+
+/* The opened list of dropdown choices: gives each option a card background and text colour,
+   so the list is readable in both light and dark mode. */
+select option { background: var(--card); color: var(--text); }
+/* .counter {
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+  margin-bottom: 24px;
+
+  &:hover {
+    border-color: var(--accent-border);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+.hero {
+  position: relative;
+
+  .base,
+  .framework,
+  .vite {
+    inset-inline: 0;
+    margin: 0 auto;
+  }
+
+  .base {
+    width: 170px;
+    position: relative;
+    z-index: 0;
+  }
+
+  .framework,
+  .vite {
+    position: absolute;
+  }
+
+  .framework {
+    z-index: 1;
+    top: 34px;
+    height: 28px;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
+      scale(1.4);
+  }
+
+  .vite {
+    z-index: 0;
+    top: 107px;
+    height: 26px;
+    width: auto;
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
+      scale(0.8);
+  }
+}
+
+#center {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+
+  @media (max-width: 1024px) {
+    padding: 32px 20px 24px;
+    gap: 18px;
+  }
+}
+
+#next-steps {
+  display: flex;
+  border-top: 1px solid var(--border);
+  text-align: left;
+
+  & > div {
+    flex: 1 1 0;
+    padding: 32px;
+    @media (max-width: 1024px) {
+      padding: 24px 20px;
+    }
+  }
+
+  .icon {
+    margin-bottom: 16px;
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+#docs {
+  border-right: 1px solid var(--border);
+
+  @media (max-width: 1024px) {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+#next-steps ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+
+  .logo {
+    height: 18px;
+  }
+
+  a {
+    color: var(--text-h);
+    font-size: 16px;
+    border-radius: 6px;
+    background: var(--social-bg);
+    display: flex;
+    padding: 6px 12px;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: box-shadow 0.3s;
+
+    &:hover {
+      box-shadow: var(--shadow);
+    }
+    .button-icon {
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    li {
+      flex: 1 1 calc(50% - 8px);
+    }
+
+    a {
+      width: 100%;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+  }
+}
+
+#spacer {
+  height: 88px;
+  border-top: 1px solid var(--border);
+  @media (max-width: 1024px) {
+    height: 48px;
+  }
+}
+
+.ticks {
+  position: relative;
+  width: 100%;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -4.5px;
+    border: 5px solid transparent;
+  }
+
+  &::before {
+    left: 0;
+    border-left-color: var(--border);
+  }
+  &::after {
+    right: 0;
+    border-right-color: var(--border);
+  }
+} */
